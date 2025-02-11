@@ -124,11 +124,11 @@ class EquipementsScraper(ExpatDakarScraper):
     def _extract_item_data(self, container):
         try:
             return {
-                "details" : container.find_element(By.CLASS_NAME, 'listing-card__header__title').text,
-                "etat" : container.find_element(By.CLASS_NAME, 'listing-card__header__tags').text,
-                "adresse" : container.find_element(By.CLASS_NAME, 'listing-card__header__location').text,
-                "prix" : container.find_element(By.CLASS_NAME, 'listing-card__info-bar__price').text.replace('\u202f', '').replace(' F Cfa', '').strip(),
-                "image_link" : container.find_element(By.TAG_NAME, 'img').get_attribute('src')   
+                "details" : container.find_elements(By.CLASS_NAME, 'listing-card__header__title').text,
+                "etat" : container.find_elements(By.CLASS_NAME, 'listing-card__header__tags').text,
+                "adresse" : container.find_elements(By.CLASS_NAME, 'listing-card__header__location').text,
+                "prix" : container.find_elements(By.CLASS_NAME, 'listing-card__info-bar__price').text.replace('\u202f', '').replace(' F Cfa', '').strip(),
+                "image_link" : container.find_elements(By.TAG_NAME, 'img').get_attribute('src')   
             }
         except Exception as e:
             print(f"Erreur extraction équipement: {str(e)}")
