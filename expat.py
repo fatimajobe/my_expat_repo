@@ -119,7 +119,7 @@ def main():
 
                 with col1:
                     st.write("**Distribution des prix**")
-                    st.bar_chart(df.groupby('marque')['prix'].mean())
+                    st.bar_chart(df.groupby('etat')['prix'].mean())
 
                 with col2:
                     st.write("**Répartition par état**")
