@@ -92,7 +92,7 @@ class VoituresScraper(ExpatDakarScraper):
         try:
             price_element = container.find_element(By.CSS_SELECTOR, "span[class*='listing-card__price']")
             price_text = price_element.text if price_element else ''
-            price_cleaned = price_text.replace('\u202f', '').replace(' F Cfa', '').strip() if price_text else None
+            price_cleaned = price_text.replace('\u202f', '').replace(' F Cfa', '').strip() if price_text else ''
 
             return {
                 "etat": container.find_element(By.CSS_SELECTOR, "span[class*='--condition_']").text,
@@ -114,7 +114,7 @@ class MotosScraper(ExpatDakarScraper):
         try:
             price_element = container.find_element(By.CLASS_NAME, 'listing-card__info-bar__price')
             price_text = price_element.text if price_element else ''
-            price_cleaned = price_text.replace('\u202f', '').replace(' F Cfa', '').strip() if price_text else None
+            price_cleaned = price_text.replace('\u202f', '').replace(' F Cfa', '').strip() if price_text else ''
 
             return {
                 "etat": container.find_element(By.CSS_SELECTOR, "span[class*='--condition_']").text,
@@ -135,7 +135,7 @@ class EquipementsScraper(ExpatDakarScraper):
         try:
             price_element = container.find_element(By.CLASS_NAME, 'listing-card__info-bar__price')
             price_text = price_element.text if price_element else ''
-            price_cleaned = price_text.replace('\u202f', '').replace(' F Cfa', '').strip() if price_text else None
+            price_cleaned = price_text.replace('\u202f', '').replace(' F Cfa', '').strip() if price_text else ''
 
             return {
                 "details": container.find_element(By.CLASS_NAME, 'listing-card__header__title').text,
