@@ -4,12 +4,13 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
 import time
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service
 
 class Scraper:
     def __init__(self):
         self.options = webdriver.ChromeOptions()
         self._configure_options()
-        self.driver = None
         
     def _configure_options(self):
         self.options.add_argument('--headless')
@@ -18,9 +19,10 @@ class Scraper:
         self.options.add_argument('--disable-blink-features=AutomationControlled')
         
     def _init_driver(self):
-        self.driver = webdriver.Chrome(options=self.options)
+        service = Service(ChromeDriverManager().install())  # Gestion automatique de ChromeDriver
+        self.driver = webdriver.Chrome(service=service, options=self.options)
         return self.driver
-
+        
 class ExpatDakarScraper(Scraper):
     def __init__(self, category):
         super().__init__()
