@@ -90,45 +90,59 @@ class VoituresScraper(ExpatDakarScraper):
 
     def _extract_item_data(self, container):
         try:
+            price_element = container.find_element(By.CSS_SELECTOR, "span[class*='listing-card__price']")
+            price_text = price_element.text if price_element else ''
+            price_cleaned = price_text.replace('\u202f', '').replace(' F Cfa', '').strip() if price_text else None
+
             return {
                 "etat": container.find_element(By.CSS_SELECTOR, "span[class*='--condition_']").text,
                 "marque": container.find_element(By.CSS_SELECTOR, "span[class*='--make_']").text,
                 "annee": container.find_element(By.CSS_SELECTOR, "span[class*='--buildyear_']").text,
                 "bvitesse": container.find_element(By.CSS_SELECTOR, "span[class*='--transmission_']").text,
                 "adresse": container.find_element(By.CLASS_NAME, 'listing-card__header__location').text,
-                "prix": container.find_element(By.CSS_SELECTOR, "span[class*='listing-card__price']").text.replace('\u202f', '').replace(' F Cfa', '').strip(),
+                "prix": price_cleaned,
                 "image_link": container.find_element(By.TAG_NAME, 'img').get_attribute('src')
             }
         except Exception as e:
             print(f"Erreur extraction voiture: {str(e)}")
+
 class MotosScraper(ExpatDakarScraper):
     def __init__(self):
         super().__init__("Motos")
 
     def _extract_item_data(self, container):
         try:
+            price_element = container.find_element(By.CLASS_NAME, 'listing-card__info-bar__price')
+            price_text = price_element.text if price_element else ''
+            price_cleaned = price_text.replace('\u202f', '').replace(' F Cfa', '').strip() if price_text else None
+
             return {
                 "etat": container.find_element(By.CSS_SELECTOR, "span[class*='--condition_']").text,
                 "marque": container.find_element(By.CSS_SELECTOR, "span[class*='--make_']").text,
                 "annee": container.find_element(By.CSS_SELECTOR, "span[class*='--buildyear_']").text,
                 "adresse": container.find_element(By.CLASS_NAME, 'listing-card__header__location').text,
-                "prix": container.find_element(By.CLASS_NAME, 'listing-card__info-bar__price').text.replace('\u202f', '').replace(' F Cfa', '').strip(),
+                "prix": price_cleaned,
                 "image_link": container.find_element(By.TAG_NAME, 'img').get_attribute('src')
             }
         except Exception as e:
             print(f"Erreur extraction moto: {str(e)}")
+
 class EquipementsScraper(ExpatDakarScraper):
     def __init__(self):
         super().__init__("Équipements et pièces")
 
     def _extract_item_data(self, container):
         try:
+            price_element = container.find_element(By.CLASS_NAME, 'listing-card__info-bar__price')
+            price_text = price_element.text if price_element else ''
+            price_cleaned = price_text.replace('\u202f', '').replace(' F Cfa', '').strip() if price_text else None
+
             return {
-                "details" : container.find_element(By.CLASS_NAME, 'listing-card__header__title').text,
-                "etat" : container.find_element(By.CLASS_NAME, 'listing-card__header__tags').text,
-                "adresse" : container.find_element(By.CLASS_NAME, 'listing-card__header__location').text,
-                "prix" : container.find_element(By.CLASS_NAME, 'listing-card__info-bar__price').text.replace('\u202f', '').replace(' F Cfa', '').strip(),
-                "image_link" : container.find_element(By.TAG_NAME, 'img').get_attribute('src')   
+                "details": container.find_element(By.CLASS_NAME, 'listing-card__header__title').text,
+                "etat": container.find_element(By.CLASS_NAME, 'listing-card__header__tags').text,
+                "adresse": container.find_element(By.CLASS_NAME, 'listing-card__header__location').text,
+                "prix": price_cleaned,
+                "image_link": container.find_element(By.TAG_NAME, 'img').get_attribute('src')
             }
         except Exception as e:
             print(f"Erreur extraction équipement: {str(e)}")
