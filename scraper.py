@@ -70,9 +70,9 @@ class ExpatDakarScraper(Scraper):
         raise NotImplementedError()
 
     def clean_data(self, df):
-        df = df.drop_duplicates().reset_index(drop=True)
-        df['prix'] = pd.to_numeric(df['prix'], errors='coerce')
-        return df.dropna(subset=['prix'])
+    df = df.drop_duplicates().reset_index(drop=True)
+    df['prix'] = pd.to_numeric(df['prix'].replace("Non spécifié", "0"), errors='coerce')
+    return df.dropna(subset=['prix'])
 
     def scrape(self, pages=20):
         self._init_driver()
