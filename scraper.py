@@ -70,7 +70,8 @@ class ExpatDakarScraper(Scraper):
         raise NotImplementedError()
 
     def clean_data(self, df):
-        df = df.drop_duplicates().reset_index(drop=True)
+        # Remplacer les None par des valeurs par défaut
+        df['prix'] = df['prix'].fillna("0").replace("[^0-9]", "", regex=True)
         df['prix'] = pd.to_numeric(df['prix'], errors='coerce')
         return df.dropna(subset=['prix'])
 
