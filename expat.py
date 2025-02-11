@@ -5,6 +5,7 @@ from datetime import datetime
 from scraper import VoituresScraper, MotosScraper, EquipementsScraper
 import plotly.express as px
 
+
 # Configuration des chemins (déclaration globale)
 DATA_RAW = "data/raw"
 DATA_CLEANED = "data/cleaned"
@@ -39,7 +40,7 @@ def main():
                 scraper = get_scraper(category)
                 with st.spinner("Scraping en cours..."):
                     try:
-                        df = scraper.scrape(category, pages=pages)
+                        df = scraper.scrape(pages=pages)
                         if not df.empty:
                             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
                             raw_path = os.path.join(DATA_RAW, f"{category}_{timestamp}_raw.csv")
