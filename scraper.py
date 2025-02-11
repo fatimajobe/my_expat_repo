@@ -1,49 +1,69 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
 import pandas as pd
 import time
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service
+
+# Définir les URLs pour chaque catégorie
+Categories = {
+    "Motos": {
+        "url": "https://www.expat-dakar.com/motos-scooters-velos",
+        "columns": ["Etat", "Marque", "Année", "Adresse", "image_link"]
+    },
+    "Voitures": {
+        "url": "https://www.expat-dakar.com/voitures",
+        "columns": ["Etat", "Marque", "Année", "Boite vitesse", "Adresse", "Prix", "image_link"]
+    },
+    "Équipements et pièces": {
+        "url": "https://www.expat-dakar.com/equipements-pieces",
+        "columns": ["Détails", "Etat", "Adresse", "Prix", "image_link"]
+    }
+}
 
 class Scraper:
     def __init__(self):
         self.options = webdriver.ChromeOptions()
-        self._configure_options()
+        self.options.add_argument("--headless")
+        self.options.add_argument("--disable-blink-features=AutomationControlled")
+        self.options.add_argument("--no-sandbox")
+        self.options.add_argument("--disable-dev-shm-usage")
+        self.service = Service(ChromeDriverManager().install())
+        self.driver = webdriver.Chrome(service=self.service, options=self.options)
+    
+    def scrape(self, category, pages):
+        data = []
+        base_url = Categories[category]["url"]
+        columns = Categories[category]["columns"]
         
-    def _configure_options(self):
-        self.options.add_argument('--headless')
-        self.options.add_argument('--no-sandbox')
-        self.options.add_argument('--disable-dev-shm-usage')
-        self.options.add_argument('--disable-blink-features=AutomationControlled')
-        
-    def _init_driver(self):
-        service = Service(ChromeDriverManager().install())  # Gestion automatique de ChromeDriver
-        self.driver = webdriver.Chrome(service=service, options=self.options)
-        return self.driver
-
-class ExpatDakarScraper(Scraper):
-    def __init__(self, category):
-        super().__init__()
-        self.category = category
-        self.base_urls = {
-            "Voitures": "https://www.expat-dakar.com/voitures",
-            "Motos": "https://www.expat-dakar.com/motos-scooters",
-            "Équipements et pièces": "https://www.expat-dakar.com/equipements-pieces"
-        }
-        self.data = []
-        
-    def _get_containers(self):
         try:
-            WebDriverWait(self.driver, 20).until(
-                EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".listings-cards__list-item"))
-            )
-            return self.driver.find_elements(By.CSS_SELECTOR, ".listings-cards__list-item")
-        except:
-            return []
+            for page in range(1, pages + 1):
+                url = f"{base_url}?page={page}"
+                self.driver.get(url)
+                
+                # Attendre le chargement dynamique
+                WebDriverWait(self.driver, 20).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, "listing-item"))
+                )
+                
+                # Faire défiler pour charger le contenu JS
+                self._scroll_page()
+                
+                # Extraire les données
+                items = self.driver.find_elements(By.CLASS_NAME, "listing-item")
+                for item in items:
+                    entry = self._parse_item(item, columns)
+                    data.append(entry)
+        
+        finally:
+            self.driver.quit()
+            
+        return pd.DataFrame(data)
 
     def _scroll_page(self):
+        """Défilement pour charger tout le contenu JS"""
         last_height = self.driver.execute_script("return document.body.scrollHeight")
         while True:
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
@@ -53,84 +73,58 @@ class ExpatDakarScraper(Scraper):
                 break
             last_height = new_height
 
-    def _scrape_page(self, page):
-        self.driver.get(f"{self.base_urls[self.category]}?page={page}")
-        self._scroll_page()
-        containers = self._get_containers()
-        
-        for container in containers:
+    def _parse_item(self, item, columns):
+        """Extraction des données avec gestion des erreurs"""
+        data = {}
+        for column in columns:
             try:
-                item_data = self._extract_item_data(container)
-                if item_data:
-                    self.data.append(item_data)
+                if column == "image_link":
+                    img_element = item.find_element(By.TAG_NAME, "img")
+                    data[column] = img_element.get_attribute("src") if img_element else None
+                elif column == "Etat":
+                    state_element = item.find_element(By.CLASS_NAME, "listing-item-state")
+                    data[column] = state_element.text.strip() if state_element else None
+                elif column == "Marque":
+                    title_element = item.find_element(By.CLASS_NAME, "listing-item-title")
+                    data[column] = title_element.text.strip() if title_element else None
+                elif column == "Année":
+                    year_element = item.find_element(By.CLASS_NAME, "listing-item-year")
+                    data[column] = year_element.text.strip() if year_element else None
+                elif column == "Adresse":
+                    location_element = item.find_element(By.CLASS_NAME, "listing-item-location")
+                    data[column] = location_element.text.strip() if location_element else None
+                elif column == "Prix":
+                    price_element = item.find_element(By.CLASS_NAME, "listing-item-price")
+                    data[column] = price_element.text.strip() if price_element else None
+                elif column == "Boite vitesse":
+                    transmission_element = item.find_element(By.CLASS_NAME, "listing-item-transmission")
+                    data[column] = transmission_element.text.strip() if transmission_element else None
+                elif column == "Détails":
+                    details_element = item.find_element(By.CLASS_NAME, "listing-item-details")
+                    data[column] = details_element.text.strip() if details_element else None
+                else:
+                    data[column] = None
             except Exception as e:
-                print(f"Erreur sur l'item: {str(e)}")
-
-    def _extract_item_data(self, container):
-        raise NotImplementedError()
+                data[column] = None
+                print(f"Error parsing {column}: {e}")
+        return data
 
     def clean_data(self, df):
-        # Remplacer les None par des valeurs par défaut
-        df['prix'] = df['prix'].fillna("0").replace("[^0-9]", "", regex=True)
-        df['prix'] = pd.to_numeric(df['prix'], errors='coerce')
-        return df.dropna(subset=['prix'])
+        """
+        Nettoyer les données scrapées
+        """
+        # Supprimer les doublons
+        df.drop_duplicates(inplace=True)
 
-    def scrape(self, pages=20):
-        self._init_driver()
-        try:
-            for page in range(1, pages + 1):
-                print(f"Scraping page {page}...")
-                self._scrape_page(page)
-        finally:
-            self.driver.quit()
-        return self.clean_data(pd.DataFrame(self.data))
+        # Supprimer les lignes avec des valeurs manquantes
+        df.dropna(inplace=True)
 
-class VoituresScraper(ExpatDakarScraper):
-    def __init__(self):
-        super().__init__("Voitures")
+        # Convertir les prix en numérique
+        if "Prix" in df.columns:
+            df["Prix"] = df["Prix"].str.replace(" ", "").str.replace("FCFA", "").str.replace(",", "").astype(int)
 
-    def _extract_item_data(self, container):
-        try:
-            return {
-                "etat": container.find_element(By.CSS_SELECTOR, "span[class*='--condition_']").text,
-                "marque": container.find_element(By.CSS_SELECTOR, "span[class*='--make_']").text,
-                "annee": container.find_element(By.CSS_SELECTOR, "span[class*='--buildyear_']").text,
-                "bvitesse": container.find_element(By.CSS_SELECTOR, "span[class*='--transmission_']").text,
-                "adresse": container.find_element(By.CLASS_NAME, 'listing-card__header__location').text,
-                "prix": container.find_element(By.CSS_SELECTOR, "span[class*='listing-card__price']").text.replace('\u202f', '').replace(' F Cfa', '').strip(),
-                "image_link": container.find_element(By.TAG_NAME, 'img').get_attribute('src')
-            }
-        except Exception as e:
-            print(f"Erreur extraction voiture: {str(e)}")
-class MotosScraper(ExpatDakarScraper):
-    def __init__(self):
-        super().__init__("Motos")
+        # Convertir les dates en datetime
+        if "date" in df.columns:
+            df["date"] = pd.to_datetime(df["date"], errors="coerce")
 
-    def _extract_item_data(self, container):
-        try:
-            return {
-                "etat": container.find_element(By.CSS_SELECTOR, "span[class*='--condition_']").text,
-                "marque": container.find_element(By.CSS_SELECTOR, "span[class*='--make_']").text,
-                "annee": container.find_element(By.CSS_SELECTOR, "span[class*='--buildyear_']").text,
-                "adresse": container.find_element(By.CLASS_NAME, 'listing-card__header__location').text,
-                "prix": container.find_element(By.CLASS_NAME, 'listing-card__info-bar__price').text.replace('\u202f', '').replace(' F Cfa', '').strip(),
-                "image_link": container.find_element(By.TAG_NAME, 'img').get_attribute('src')
-            }
-        except Exception as e:
-            print(f"Erreur extraction moto: {str(e)}")
-class EquipementsScraper(ExpatDakarScraper):
-    def __init__(self):
-        super().__init__("Équipements et pièces")
-
-    def _extract_item_data(self, container):
-        try:
-            return {
-                "details" : container.find_elements(By.CLASS_NAME, 'listing-card__header__title').text,
-                "etat" : container.find_elements(By.CLASS_NAME, 'listing-card__header__tags').text,
-                "adresse" : container.find_elements(By.CLASS_NAME, 'listing-card__header__location').text,
-                "prix" : container.find_elements(By.CLASS_NAME, 'listing-card__info-bar__price').text.replace('\u202f', '').replace(' F Cfa', '').strip(),
-                "image_link" : container.find_elements(By.TAG_NAME, 'img').get_attribute('src')   
-            }
-        except Exception as e:
-            print(f"Erreur extraction équipement: {str(e)}")
-            return None
+        return df
