@@ -21,7 +21,7 @@ class Scraper:
         self.options.add_argument('--remote-debugging-port=9222')  # Port de débogage
         
     def _init_driver(self):
-        service = Service(ChromeDriverManager(version="114.0.5735.90").install())  # Version stable
+        service = Service(ChromeDriverManager().install())  # Version stable
         self.driver = webdriver.Chrome(service=service, options=self.options)
         return self.driver
         
