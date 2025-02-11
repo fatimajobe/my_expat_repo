@@ -4,7 +4,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
 import time
-
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 
@@ -14,13 +13,13 @@ class Scraper:
         self._configure_options()
         
     def _configure_options(self):
-        self.options.add_argument('--headless')
-        self.options.add_argument('--no-sandbox')
-        self.options.add_argument('--disable-dev-shm-usage')
-        self.options.add_argument('--disable-blink-features=AutomationControlled')
+        self.options.add_argument("--headless=new")  # Mode headless moderne
+        self.options.add_argument("--no-sandbox")
+        self.options.add_argument("--disable-dev-shm-usage")
+        self.options.add_argument("--disable-gpu")
         
     def _init_driver(self):
-        service = Service(ChromeDriverManager().install())  # Gestion automatique de ChromeDriver
+        service = Service(ChromeDriverManager().install())
         self.driver = webdriver.Chrome(service=service, options=self.options)
         return self.driver
 
