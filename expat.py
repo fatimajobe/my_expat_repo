@@ -26,8 +26,9 @@ def main():
     st.set_page_config(page_title="Expat Dakar", page_icon="🏍️", layout="wide")
     
     st.sidebar.title("Navigation")
-    menu = st.sidebar.radio("", ["Scraping", "Téléchargement", "Dashboard", "Évaluation"])
-
+    menu = st.sidebar.radio(label="Navigation", options=["Scraping", "Téléchargement", "Dashboard", "Évaluation"],
+    label_visibility="hidden"
+        
     if menu == "Scraping":
         st.title("Scraping des données")
         col1, col2 = st.columns([1, 2])
