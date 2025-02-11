@@ -128,3 +128,15 @@ class Scraper:
             df["date"] = pd.to_datetime(df["date"], errors="coerce")
 
         return df
+
+class VoituresScraper(Scraper):
+    def __init__(self):
+        super().__init__()
+
+class MotosScraper(Scraper):
+    def __init__(self):
+        super().__init__()
+
+class EquipementsScraper(Scraper):
+    def __init__(self):
+        super().__init__()
