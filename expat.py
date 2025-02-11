@@ -27,7 +27,7 @@ def main():
     
     st.sidebar.title("Navigation")
     menu = st.sidebar.radio(label="Navigation", options=["Scraping", "Téléchargement", "Dashboard", "Évaluation"],
-    label_visibility="hidden"
+    label_visibility="hidden")
         
     if menu == "Scraping":
         st.title("Scraping des données")
