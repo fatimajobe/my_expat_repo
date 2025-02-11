@@ -7,6 +7,7 @@ import time
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 
+
 class Scraper:
     def __init__(self):
         self.options = webdriver.ChromeOptions()
@@ -16,10 +17,11 @@ class Scraper:
         self.options.add_argument('--headless')
         self.options.add_argument('--no-sandbox')
         self.options.add_argument('--disable-dev-shm-usage')
-        self.options.add_argument('--disable-blink-features=AutomationControlled')
+        self.options.add_argument('--disable-gpu')
+        self.options.add_argument('--remote-debugging-port=9222')  # Port de débogage
         
     def _init_driver(self):
-        service = Service(ChromeDriverManager().install())  # Gestion automatique de ChromeDriver
+        service = Service(ChromeDriverManager(version="114.0.5735.90").install())  # Version stable
         self.driver = webdriver.Chrome(service=service, options=self.options)
         return self.driver
         
